@@ -1,12 +1,13 @@
 # sudoku
 
-The code in grid selector is entirely my own, and it accomplishes the task of selecting the sudoku grid from a live video feed. In the coming days I'll adapt some of the open sourced sudoku solving code and number classification CNNs out there to solve this grid, but finding an object from a video and training a CNN to high accuracy are the most important components of an augmented reality use case.
+# SETUP & INSTRUCTIONS
 
-COMPUTER VISION OVERVIEW
+
+# COMPUTER VISION OVERVIEW
 Computer vision is the field concerning the ability of a computer to process photo or video input that it receives from a visual sensor. This is accomplished by converting an image into an array of tuples of three pixels with values between 0 and 255 (representing the RGB color system), and representing a video as a set of images which continually change to reflect the current frame. This array can then be manipulated for a variety of purposes, including motion detection, object classification, filter application, among many others. The use of Python’s opencv library for computer vision which operates on top of Python’s numpy library for linear algebra makes computer vision tasks much simpler than they otherwise would be. 
 
 
-SUDOKU PROJECT OVERVIEW
+# SUDOKU PROJECT OVERVIEW
 The code I was tasked to reverse engineer is a program which takes a video of someone holding up a sudoku puzzle as the input, and prints out the exact same video with the entire grid filled in with the solved puzzle. This is a complex task, but it can be thought of in three manageable steps. 
 
 From the raw video input, isolate the portion of the frame containing the sudoku grid.
@@ -17,7 +18,7 @@ Each of these steps are critical to this particular use case of opencv, but in o
 
 
 
-SUDOKU GRID DETECTION
+# SUDOKU GRID DETECTION
 
 The first step is to find the contour, or region of the frame which contains the sudoku grid. Below is the code I used to draw this contour. (NOTE: While the creator’s github was consulted for ideas and certain opencv methods, all code here is original)
 
@@ -89,16 +90,16 @@ Which yields the image below
 After this, the rotated rectangle of the grid must be mapped to an upright rectangle in order for number classification to occur, so we have to use the warpperspective function to accomplish this. In a use case such as the one you described to me, this may not be necessary, but some form of rotating an object to get the proper perspective is indeed important in object classification.
 
 
-NUMBER DETECTION (THIS IS THE CRITICAL STEP FOR USE CASE)
+# NUMBER DETECTION (THIS IS THE CRITICAL STEP FOR AR USE CASE)
 
 There are some minutiae in the beginning of this phase of the project as the grid needs to be sliced into its different boxes and the lines between the numbers ignored, but this portion of the code is specific just to sudoku and won’t be necessary for other use cases. I have pasted the code in this section below, and will offer a brief explanation of its parts, but what’s important is what happens after these boxes have been compartmentalized.  Each image of a number is “looked” at by the computer, input into a convolutional neural network, and output as a digit between 0-9. The beauty of this process is that the fact that this is happening in real time is no obstacle, as each individual frame is looked at separately, and its grid located and numbers classified instantaneously.  Each still image will run images through the neural network and receive numbers. The accuracy of this type of numerical classification is over 99%, and this is owed in large part to the power of the convolutional neural network. 
 
 
-CONVOLUTIONAL NEURAL NETWORK THEORY
+# CONVOLUTIONAL NEURAL NETWORK THEORY
 
 Convolutional neural networks take in a tensor (for our purposes, this is a numpy matrix of pixels) of values, which is then convolved with a filter, or simply changed according to some function involving both the input image and the filter, where the filter is a matrix of numbers which can change an image when the two are convolved. This convolution of the image and the filter is then sent forwards as a signal through the network if it passes a certain activation function, and this continues at each level of the network until the final layer is reached and the image is sorted into one or multiple of however many categories there are for the image. While the network is training, if the image is sorted incorrectly, this error will be sent back through the layers and the filters will be updated via backpropagation just as in a normal neural network, and this is how the network “learns”.  What sets a CNN apart from other neural networks is the fact that its layers of neurons are fully connected, which gives it the ability to understand more complex visual patterns. This technology should be used in creating a real-time image classifier if maximum accuracy is important.
 
-CNN CODE IN PYTHON
+# CNN CODE IN PYTHON
 CNN’s can be quickly and easily implemented with the Keras syntax on top of the Tensorflow 2.0 library. There are countless examples online of simple implementations for digit classification. The github example uses a labeled dataset of printed numbers for training, but I will show here an example of a quick implementation of handwritten digit classification with the famous MNIST dataset, and explain each part in detail. I got this example from https://keras.io/examples/mnist_cnn/. 
 
 from __future__ import print_function
@@ -118,10 +119,8 @@ epochs = 12
 
 The batch size is how many entries of data it trains on at once, the num_classes is the number of output categories (10 for 10 digits 0-9) and the number of epochs is how many times it trains on a batch 
 
-# input image dimensions
 img_rows, img_cols = 28, 28
 
-# the data, split between train and test sets
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
 
 This step imports the MNIST labeled data as x and y for the training and testing set
@@ -143,30 +142,40 @@ print('x_train shape:', x_train.shape)
 print(x_train.shape[0], 'train samples')
 print(x_test.shape[0], 'test samples')
 
-# convert class vectors to binary class matrices
 y_train = keras.utils.to_categorical(y_train, num_classes)
 y_test = keras.utils.to_categorical(y_test, num_classes)
 
 
-
-
 model = Sequential()
+
 The above step creates a sequential, or layer based neural network that can now be filled with layers or neurons
+
 model.add(Conv2D(32, kernel_size=(3, 3),
                  activation='relu',
                  input_shape=input_shape))
 model.add(Conv2D(64, (3, 3), activation='relu'))
+
 The above two steps add two convolutional layers with the relu activation function
+
 model.add(MaxPooling2D(pool_size=(2, 2)))
+
 The above step adds a pooling layer whose purpose is to condense the output of a layer of neurons into one neuron for computational purposes
+
 model.add(Dropout(0.25))
+
 The above step drops a certain proportion of the neurons to be trained in each iteration in order to prevent overfitting (which CNNs are prone to due to their fully connected nature)
+
 model.add(Flatten())
+
 The above step flattens the output of the previous layer’s neurons to the proper number of channels for the next layer
+
 model.add(Dense(128, activation='relu'))
 model.add(Dropout(0.5))
+
 The above two steps add another layer and drop a different proportion of neurons
+
 model.add(Dense(num_classes, activation='softmax'))
+
 Finally we have out output layer which has 10 output categories (1 for each digit) and uses the softmax activation function to probabilistically determine which digit an image is supposed to represent
 
 model.compile(loss=keras.losses.categorical_crossentropy,
@@ -185,18 +194,17 @@ The above two steps compile the model where we have chosen categorical cross ent
 score = model.evaluate(x_test, y_test, verbose=0)
 print('Test loss:', score[0])
 print('Test accuracy:', score[1])
+
 The above steps calculate and print the error in the model, which reaches above 99% by the 12th epoch in a relatively short amount of time
 
 
-MODIFICATIONS
-So how can code like this be adapted for a different type of object classification? Most of the body of this code can remain the same. We will continue to need a sequential model with convolutional layers and then a flattening into additional “normal” dense hidden layers, all with the efficient relu activation. Depending on the size of what we’re doing it might be very helpful or even necessary to include pooling layers, and dropping a proportion of the neurons is always important to prevent overfitting. What will change then will of course be the labeled dataset we are using to train the network (entirely dependent on the specific use case you have in mind), and perhaps also the size of the image we enter into the network. The number of output modes which the final softmax function will sort images into is again entirely dependent on the use case, and how many categories of objects the network is meant to classify. The size of the kernels/filters we use for convolution, the number of layers and neurons, the proportion we choose to drop in each layer, when we flatten, our optimizer, and other hyperparameters will be adjusted per the use case and will be optimized via a grid search when the time comes. With a good labeled dataset and the use of a CNN with opencv, real time object classification should be possible.
+# MODIFICATIONS
+So how can code like this be adapted for a different type of object classification? Most of the body of this code can remain the same. We will continue to need a sequential model with convolutional layers and then a flattening into additional “normal” dense hidden layers, all with the efficient relu activation. Depending on the size of what we’re doing it might be very helpful or even necessary to include pooling layers, and dropping a proportion of the neurons is always important to prevent overfitting. What will change then will of course be the labeled dataset we are using to train the network, and perhaps also the size of the image we enter into the network. The number of output modes which the final softmax function will sort images into is again entirely dependent on the use case, and how many categories of objects the network is meant to classify. The size of the kernels/filters we use for convolution, the number of layers and neurons, the proportion we choose to drop in each layer, when we flatten, our optimizer, and other hyperparameters will be adjusted per the use case and will be optimized via a grid search when the time comes. With a good labeled dataset and the use of a CNN with opencv, real time object classification should be possible.
 
 
 
 
-
-
-SUDOKU SOLVE
-This portion of the project is the least applicable to the project you want to develop, so I have not written any new code here but chose rather to explain each step. In a remote learning use case, this step would be replaced with something different, whether it’s printing the name of an object on the screen, showing other related objects, etc. For Sudoku however, the augmented reality environment is completed by running a known recursive algorithm for solving Sudoku, and then printing the correct numbers in the correct locations on the grid. Here is the code:
+# SUDOKU SOLVE
+This portion of the project is the least applicable to a different AR, so I have not written any new code here. In a different use case, this step would be replaced with something different, whether it’s printing the name of an object on the screen, showing other related objects, etc. For Sudoku however, the augmented reality environment is completed by running a known recursive algorithm for solving Sudoku, and then printing the correct numbers in the correct locations on the grid.
 
 
