@@ -1,5 +1,8 @@
 # sudoku
 
+Readme Instruction:
+> https://guides.github.com/features/mastering-markdown/
+
 # SETUP & INSTRUCTIONS
 
 ![mypic](images/13_dvg-iip-waf-security.png)
