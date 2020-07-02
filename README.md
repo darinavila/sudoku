@@ -5,7 +5,6 @@ Readme Instruction:
 
 # SETUP & INSTRUCTIONS
 
-![mypic](images/13_dvg-iip-waf-security.png)
 
 # COMPUTER VISION OVERVIEW
 Computer vision is the field concerning the ability of a computer to process photo or video input that it receives from a visual sensor. This is accomplished by converting an image into an array of tuples of three pixels with values between 0 and 255 (representing the RGB color system), and representing a video as a set of images which continually change to reflect the current frame. This array can then be manipulated for a variety of purposes, including motion detection, object classification, filter application, among many others. The use of Python’s opencv library for computer vision which operates on top of Python’s numpy library for linear algebra makes computer vision tasks much simpler than they otherwise would be. 
@@ -69,6 +68,7 @@ cv2.destroyAllWindows
 
 
 
+![mypic](images/grid_grab.png)
 
 
 
@@ -90,6 +90,8 @@ poly = cv2.approxPolyDP(secC, 1, True)
 cv2.fillConvexPoly(final, poly, (0,255,255), 1)
 Which yields the image below
 
+
+![mypic](images/grid_poly.png)
 
 After this, the rotated rectangle of the grid must be mapped to an upright rectangle in order for number classification to occur, so we have to use the warpperspective function to accomplish this. In a use case such as the one you described to me, this may not be necessary, but some form of rotating an object to get the proper perspective is indeed important in object classification.
 
