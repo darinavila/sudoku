@@ -68,7 +68,7 @@ cv2.destroyAllWindows
 
 
 
-![mypic](images/grid_grab.png)
+![mypic](images/grid_grab.PNG)
 
 
 
@@ -91,7 +91,7 @@ cv2.fillConvexPoly(final, poly, (0,255,255), 1)
 Which yields the image below
 
 
-![mypic](images/grid_poly.png)
+![mypic2](images/grid_poly.PNG)
 
 After this, the rotated rectangle of the grid must be mapped to an upright rectangle in order for number classification to occur, so we have to use the warpperspective function to accomplish this. In a use case such as the one you described to me, this may not be necessary, but some form of rotating an object to get the proper perspective is indeed important in object classification.
 
