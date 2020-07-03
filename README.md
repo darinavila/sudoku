@@ -4,6 +4,8 @@ NOTE: This is NOT an original project. The concept for the project has already b
 
 # SETUP & INSTRUCTIONS
 
+*This is just one possible method to set up and run this project.*
+
 **Step 1: Download Python:** 
 In order to run this project, python will have to be installed on your device. You can quickly do this by going [here](https://www.python.org/downloads/) and clicking on the big yellow button which says "Download Python". Make sure you download the correct version for your operating system, and install the downloaded file.
 
@@ -29,25 +31,31 @@ Now, in order to utilize the convolutional neural network we will be using for n
 Great! Now we have successfully installed the necessary libraries.
 
 **Step 4: Launch Jupyter Notebooks:**
-Open up the Anaconda Navigator program which should have been downloaded with Anaconda. Under the hometab, you will see a variety of 
+Open up the Anaconda Navigator program which should have been downloaded with Anaconda. Under the home tab, you will see a list of boxes, each of which contains a different python environment. Click on the "launch" box within the larger box entitled "Jupyter Notebooks", which looks like this: 
+![mypic0](images/Jupyter.PNG)
+
+This should open up your browser with a folder directory (for windows this is typically your user folder in your C drive).
 
 **Step 5: Paste in code and models to local folder within Jupyter:**
+The simplest way to proceed in this step is to navigate to wherever you would like this project to reside on your computer within the Jupyter browser directory, and create a folder for this project. Then simply download the files from this repository, and place them in the folder you've created. 
 
 **Run code, put grid in front of camera:**
+The final step is to open up the main.ipynb file and click run. If you have a functioning webcam, a new window should open up displaying your video feed. Print out ne of the sample sudoku grids provided, or one of your own, and hold it up to the camera (relatively upright, with a steady hand) and the solved numbers should be printed out on the grid in the video feed.
 
+# BACKGROUND
 
-# COMPUTER VISION OVERVIEW
+# Computer Vision Overview
 Computer vision is the field concerning the ability of a computer to process photo or video input that it receives from a visual sensor. This is accomplished by converting an image into an array of tuples of three pixels with values between 0 and 255 (representing the RGB color system), and representing a video as a set of images which continually change to reflect the current frame. This array can then be manipulated for a variety of purposes, including motion detection, object classification, filter application, among many others. The use of Python’s opencv library for computer vision which operates on top of Python’s numpy library for linear algebra makes computer vision tasks much simpler than they otherwise would be. 
 
 
 # SUDOKU PROJECT OVERVIEW
-The code I was tasked to reverse engineer is a program which takes a video of someone holding up a sudoku puzzle as the input, and prints out the exact same video with the entire grid filled in with the solved puzzle. This is a complex task, but it can be thought of in three manageable steps. 
+I was tasked to reverse engineer code which takes a video of someone holding up a sudoku puzzle as the input, and prints out the exact same video with the entire grid filled in with the solved puzzle. This is a complex task, but it can be thought of in three manageable steps. 
 
-From the raw video input, isolate the portion of the frame containing the sudoku grid.
-From the grid image, locate and identify the numbers which are currently printed on the board and input them into a matrix.
-Use a known Sudoku algorithm, solve this matrix and print out the numerical solutions into their respective spots on the sudoku grid.
+**1.** From the raw video input, isolate the portion of the frame containing the sudoku grid and transform it so it's upright.
+**2.** From the grid image, grab the portion of each nonempty box containing the number, and run this image through a digit classifying CNN to receive the digit in the box in order to fill out a matrix with each number on the grid. 
+**3.** Using a known Sudoku algorithm, solve this matrix and print out the numerical solutions into their respective spots on the sudoku grid, undo the grid transformation, and return this image to the user.
 
-Each of these steps are critical to this particular use case of opencv, but in order to modify this code to fit a different object classification use case as you had mentioned step 2 (and, to a lesser degree, step 1) is the most critical to understand. 
+Each of these steps are critical to this particular use case of opencv, but in order to modify this code to fit a different object classification use case, step 2 (and, to a lesser degree, step 1) is the most critical to understand. 
 
 
 
@@ -98,7 +106,7 @@ The first step is to find the contour, or region of the frame which contains the
 
 
 
-![mypic](images/grid_grab.PNG)
+![mypic1](images/grid_grab.PNG)
 
 
 
@@ -124,107 +132,6 @@ After this, the rotated rectangle of the grid must be mapped to an upright recta
 There are some minutiae in the beginning of this phase of the project as the grid needs to be sliced into its different boxes and the lines between the numbers ignored, but this portion of the code is specific just to sudoku and won’t be necessary for other use cases. I have pasted the code in this section below, and will offer a brief explanation of its parts, but what’s important is what happens after these boxes have been compartmentalized.  Each image of a number is “looked” at by the computer, input into a convolutional neural network, and output as a digit between 0-9. The beauty of this process is that the fact that this is happening in real time is no obstacle, as each individual frame is looked at separately, and its grid located and numbers classified instantaneously.  Each still image will run images through the neural network and receive numbers. The accuracy of this type of numerical classification is over 99%, and this is owed in large part to the power of the convolutional neural network. 
 
 
-# CONVOLUTIONAL NEURAL NETWORK THEORY
-
-Convolutional neural networks take in a tensor (for our purposes, this is a numpy matrix of pixels) of values, which is then convolved with a filter, or simply changed according to some function involving both the input image and the filter, where the filter is a matrix of numbers which can change an image when the two are convolved. This convolution of the image and the filter is then sent forwards as a signal through the network if it passes a certain activation function, and this continues at each level of the network until the final layer is reached and the image is sorted into one or multiple of however many categories there are for the image. While the network is training, if the image is sorted incorrectly, this error will be sent back through the layers and the filters will be updated via backpropagation just as in a normal neural network, and this is how the network “learns”.  What sets a CNN apart from other neural networks is the fact that its layers of neurons are fully connected, which gives it the ability to understand more complex visual patterns. This technology should be used in creating a real-time image classifier if maximum accuracy is important.
-
-# CNN CODE IN PYTHON
-CNN’s can be quickly and easily implemented with the Keras syntax on top of the Tensorflow 2.0 library. There are countless examples online of simple implementations for digit classification. The github example uses a labeled dataset of printed numbers for training, but I will show here an example of a quick implementation of handwritten digit classification with the famous MNIST dataset, and explain each part in detail. I got this example from https://keras.io/examples/mnist_cnn/. 
-
-from __future__ import print_function
-import keras
-from keras.datasets import mnist
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten
-from keras.layers import Conv2D, MaxPooling2D
-from keras import backend as K
-
-Imports the necessary libraries
-
-batch_size = 128
-num_classes = 10
-epochs = 12
-
-
-The batch size is how many entries of data it trains on at once, the num_classes is the number of output categories (10 for 10 digits 0-9) and the number of epochs is how many times it trains on a batch 
-
-img_rows, img_cols = 28, 28
-
-(x_train, y_train), (x_test, y_test) = mnist.load_data()
-
-This step imports the MNIST labeled data as x and y for the training and testing set
-
-if K.image_data_format() == 'channels_first':
-    x_train = x_train.reshape(x_train.shape[0], 1, img_rows, img_cols)
-    x_test = x_test.reshape(x_test.shape[0], 1, img_rows, img_cols)
-    input_shape = (1, img_rows, img_cols)
-else:
-    x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, 1)
-    x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, 1)
-    input_shape = (img_rows, img_cols, 1)
-
-x_train = x_train.astype('float32')
-x_test = x_test.astype('float32')
-x_train /= 255
-x_test /= 255
-print('x_train shape:', x_train.shape)
-print(x_train.shape[0], 'train samples')
-print(x_test.shape[0], 'test samples')
-
-y_train = keras.utils.to_categorical(y_train, num_classes)
-y_test = keras.utils.to_categorical(y_test, num_classes)
-
-
-model = Sequential()
-
-The above step creates a sequential, or layer based neural network that can now be filled with layers or neurons
-
-model.add(Conv2D(32, kernel_size=(3, 3),
-                 activation='relu',
-                 input_shape=input_shape))
-model.add(Conv2D(64, (3, 3), activation='relu'))
-
-The above two steps add two convolutional layers with the relu activation function
-
-model.add(MaxPooling2D(pool_size=(2, 2)))
-
-The above step adds a pooling layer whose purpose is to condense the output of a layer of neurons into one neuron for computational purposes
-
-model.add(Dropout(0.25))
-
-The above step drops a certain proportion of the neurons to be trained in each iteration in order to prevent overfitting (which CNNs are prone to due to their fully connected nature)
-
-model.add(Flatten())
-
-The above step flattens the output of the previous layer’s neurons to the proper number of channels for the next layer
-
-model.add(Dense(128, activation='relu'))
-model.add(Dropout(0.5))
-
-The above two steps add another layer and drop a different proportion of neurons
-
-model.add(Dense(num_classes, activation='softmax'))
-
-Finally we have out output layer which has 10 output categories (1 for each digit) and uses the softmax activation function to probabilistically determine which digit an image is supposed to represent
-
-model.compile(loss=keras.losses.categorical_crossentropy,
-              optimizer=keras.optimizers.Adadelta(),
-              metrics=['accuracy'])
-
-
-model.fit(x_train, y_train,
-          batch_size=batch_size,
-          epochs=epochs,
-          verbose=1,
-          validation_data=(x_test, y_test))
-
-The above two steps compile the model where we have chosen categorical cross entropy as our cost function (as is standard for most categorical neural networks) and picked a gradient descent optimizer Adadelta.
-
-score = model.evaluate(x_test, y_test, verbose=0)
-print('Test loss:', score[0])
-print('Test accuracy:', score[1])
-
-The above steps calculate and print the error in the model, which reaches above 99% by the 12th epoch in a relatively short amount of time
 
 
 # MODIFICATIONS
