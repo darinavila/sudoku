@@ -124,7 +124,29 @@ After this I grabbed the polygon encompassed by the grid with the lines
 
 ![mypic2](images/grid_poly.PNG)
 
-After this, the rotated rectangle of the grid must be mapped to an upright rectangle in order for number classification to occur, so we have to use the warpperspective() function to accomplish this. In a use case such as the one you described to me, this may not be necessary, but some form of rotating an object to get the proper perspective is indeed important in object classification.
+After this, the rotated rectangle of the grid must be mapped to an upright rectangle in order for number classification to occur, so we have to use the warpperspective() function to accomplish this. In a different AR use case, this may not be necessary, but some form of rotating an object to get the proper perspective is indeed important in object classification. This was accomplished with the following code, much of which was lifted directly from Songoku:
+
+    if len(poly) > 3:
+                
+        topleft =       min(secC, key=lambda x: x[0,0]+x[0,1])
+        bottomright =   max(secC, key=lambda x: x[0,0]+x[0,1])
+        topright =      max(secC, key=lambda x: x[0,0]-x[0,1])
+        bottomleft =    min(secC, key=lambda x: x[0,0]-x[0,1])
+        corners = (topleft, topright, bottomleft, bottomright)
+
+    rect = cv2.minAreaRect(poly)
+    width = int(rect[1][0])
+    height = int(rect[1][1])
+
+    src_pts = np.float32([corners[0],corners[1],corners[2],corners[3]])
+    dst_pts = np.float32([[0,0],[width,0],[0,height],[width,height]])
+    
+    per = cv2.getPerspectiveTransform(src_pts, dst_pts)
+    warp = cv2.warpPerspective(frame, per, (width, height))
+    warp = cv2.resize(warp, (max(width, height), max(width, height)), interpolation=cv2.INTER_CUBIC)
+    
+The grid is then split up into its 81 individual components by splitting 
+
 
 
 # NUMBER DETECTION (THIS IS THE CRITICAL STEP FOR AR USE CASE)
