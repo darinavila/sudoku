@@ -1,0 +1,101 @@
+# CONVOLUTIONAL NEURAL NETWORK THEORY
+
+Convolutional neural networks take in a tensor (for our purposes, this is a numpy matrix of pixels) of values, which is then convolved with a filter, or simply changed according to some function involving both the input image and the filter, where the filter is a matrix of numbers which can change an image when the two are convolved. This convolution of the image and the filter is then sent forwards as a signal through the network if it passes a certain activation function, and this continues at each level of the network until the final layer is reached and the image is sorted into one or multiple of however many categories there are for the image. While the network is training, if the image is sorted incorrectly, this error will be sent back through the layers and the filters will be updated via backpropagation just as in a normal neural network, and this is how the network “learns”.  What sets a CNN apart from other neural networks is the fact that its layers of neurons are fully connected, which gives it the ability to understand more complex visual patterns. This technology should be used in creating a real-time image classifier if maximum accuracy is important.
+
+# CNN CODE IN PYTHON
+CNN’s can be quickly and easily implemented with the Keras syntax on top of the Tensorflow 2.0 library. There are countless examples online of simple implementations for digit classification. The github example uses a labeled dataset of printed numbers for training, but I will show here an example of a quick implementation of handwritten digit classification with the famous MNIST dataset, and explain each part in detail. I got this example from https://keras.io/examples/mnist_cnn/. 
+
+from __future__ import print_function
+import keras
+from keras.datasets import mnist
+from keras.models import Sequential
+from keras.layers import Dense, Dropout, Flatten
+from keras.layers import Conv2D, MaxPooling2D
+from keras import backend as K
+
+Imports the necessary libraries
+
+batch_size = 128
+num_classes = 10
+epochs = 12
+
+
+The batch size is how many entries of data it trains on at once, the num_classes is the number of output categories (10 for 10 digits 0-9) and the number of epochs is how many times it trains on a batch 
+
+img_rows, img_cols = 28, 28
+
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+This step imports the MNIST labeled data as x and y for the training and testing set
+
+if K.image_data_format() == 'channels_first':
+    x_train = x_train.reshape(x_train.shape[0], 1, img_rows, img_cols)
+    x_test = x_test.reshape(x_test.shape[0], 1, img_rows, img_cols)
+    input_shape = (1, img_rows, img_cols)
+else:
+    x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, 1)
+    x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, 1)
+    input_shape = (img_rows, img_cols, 1)
+
+x_train = x_train.astype('float32')
+x_test = x_test.astype('float32')
+x_train /= 255
+x_test /= 255
+print('x_train shape:', x_train.shape)
+print(x_train.shape[0], 'train samples')
+print(x_test.shape[0], 'test samples')
+
+y_train = keras.utils.to_categorical(y_train, num_classes)
+y_test = keras.utils.to_categorical(y_test, num_classes)
+
+
+model = Sequential()
+
+The above step creates a sequential, or layer based neural network that can now be filled with layers or neurons
+
+model.add(Conv2D(32, kernel_size=(3, 3),
+                 activation='relu',
+                 input_shape=input_shape))
+model.add(Conv2D(64, (3, 3), activation='relu'))
+
+The above two steps add two convolutional layers with the relu activation function
+
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+The above step adds a pooling layer whose purpose is to condense the output of a layer of neurons into one neuron for computational purposes
+
+model.add(Dropout(0.25))
+
+The above step drops a certain proportion of the neurons to be trained in each iteration in order to prevent overfitting (which CNNs are prone to due to their fully connected nature)
+
+model.add(Flatten())
+
+The above step flattens the output of the previous layer’s neurons to the proper number of channels for the next layer
+
+model.add(Dense(128, activation='relu'))
+model.add(Dropout(0.5))
+
+The above two steps add another layer and drop a different proportion of neurons
+
+model.add(Dense(num_classes, activation='softmax'))
+
+Finally we have out output layer which has 10 output categories (1 for each digit) and uses the softmax activation function to probabilistically determine which digit an image is supposed to represent
+
+model.compile(loss=keras.losses.categorical_crossentropy,
+              optimizer=keras.optimizers.Adadelta(),
+              metrics=['accuracy'])
+
+
+model.fit(x_train, y_train,
+          batch_size=batch_size,
+          epochs=epochs,
+          verbose=1,
+          validation_data=(x_test, y_test))
+
+The above two steps compile the model where we have chosen categorical cross entropy as our cost function (as is standard for most categorical neural networks) and picked a gradient descent optimizer Adadelta.
+
+score = model.evaluate(x_test, y_test, verbose=0)
+print('Test loss:', score[0])
+print('Test accuracy:', score[1])
+
+The above steps calculate and print the error in the model, which reaches above 99% by the 12th epoch in a relatively short amount of time
