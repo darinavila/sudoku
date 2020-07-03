@@ -5,6 +5,22 @@ Readme Instruction:
 
 # SETUP & INSTRUCTIONS
 
+**Step 1: Download Python:** 
+
+
+
+
+**Step 2: Download Anaconda:**
+
+**Step 3: Install Libraries via Anaconda Prompt:**
+
+
+**Step 4: Launch Jupyter Notebooks:**
+
+**Step 5: Paste in code and models to local folder within Jupyter:**
+
+**Run code, put grid in front of camera:**
+
 
 # COMPUTER VISION OVERVIEW
 Computer vision is the field concerning the ability of a computer to process photo or video input that it receives from a visual sensor. This is accomplished by converting an image into an array of tuples of three pixels with values between 0 and 255 (representing the RGB color system), and representing a video as a set of images which continually change to reflect the current frame. This array can then be manipulated for a variety of purposes, including motion detection, object classification, filter application, among many others. The use of Python’s opencv library for computer vision which operates on top of Python’s numpy library for linear algebra makes computer vision tasks much simpler than they otherwise would be. 
@@ -25,57 +41,50 @@ Each of these steps are critical to this particular use case of opencv, but in o
 
 The first step is to find the contour, or region of the frame which contains the sudoku grid. Below is the code I used to draw this contour. (NOTE: While the creator’s github was consulted for ideas and certain opencv methods, all code here is original)
 
-import cv2, time
-import numpy as np
-video = cv2.VideoCapture(0)
+    import cv2, time
+    import numpy as np
+    video = cv2.VideoCapture(0)
 
-x = 1
+    x = 1
 
-while True:
-    check, frame = video.read()
-    frame = frame
-    frame = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
-    frame = cv2.GaussianBlur(frame,(5,5),0)
-    frame = cv2.adaptiveThreshold(frame, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 15, 5)
-    image, contours, hierarchy = cv2.findContours(frame, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    while True:
+        check, frame = video.read()
+        frame = frame
+        frame = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+        frame = cv2.GaussianBlur(frame,(5,5),0)
+        frame = cv2.adaptiveThreshold(frame, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 15, 5)
+        image, contours, hierarchy = cv2.findContours(frame, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
    
-    maxA = -1
-    maxC = None
-    secA = -1
-    secC = None
+        maxA = -1
+        maxC = None
+        secA = -1
+        secC = None
    
-    for f in contours:
-        if cv2.contourArea(f) > maxA:
-            maxA = cv2.contourArea(f)
-            maxC = f
-        elif cv2.contourArea(f) > secA:
-            secA = cv2.contourArea(f)
-            secC = f
-   
-   
-    big = [1]
-    big[0] = secC
-    print(secC)
-   
-    check, frame2 = video.read()
-    final = cv2.drawContours(frame2, big, -1, (0,0,255),1)
-    cv2.imshow('final',final)
-    key = cv2.waitKey(1)
-    if key == ord('x'):
-        break
-video.release()
-cv2.destroyAllWindows
+        for f in contours:
+            if cv2.contourArea(f) > maxA:
+                maxA = cv2.contourArea(f)
+                maxC = f
+            elif cv2.contourArea(f) > secA:
+                secA = cv2.contourArea(f)
+                secC = f
+
+
+        big = [1]
+        big[0] = secC
+        print(secC)
+
+        check, frame2 = video.read()
+        final = cv2.drawContours(frame2, big, -1, (0,0,255),1)
+        cv2.imshow('final',final)
+        key = cv2.waitKey(1)
+        if key == ord('x'):
+            break
+    video.release()
+    cv2.destroyAllWindows
 
 
 
 ![mypic](images/grid_grab.PNG)
-
-
-
-
-
-
-
 
 
 
@@ -86,14 +95,14 @@ In short, I set up a loop to constantly be grabbing new camera frames, thus crea
 
 After this I grabbed the polygon encompassed by the grid with the lines
 
-poly = cv2.approxPolyDP(secC, 1, True)
-cv2.fillConvexPoly(final, poly, (0,255,255), 1)
-Which yields the image below
+    poly = cv2.approxPolyDP(secC, 1, True)
+    cv2.fillConvexPoly(final, poly, (0,255,255), 1)
+    Which yields the image below
 
 
 ![mypic2](images/grid_poly.PNG)
 
-After this, the rotated rectangle of the grid must be mapped to an upright rectangle in order for number classification to occur, so we have to use the warpperspective function to accomplish this. In a use case such as the one you described to me, this may not be necessary, but some form of rotating an object to get the proper perspective is indeed important in object classification.
+After this, the rotated rectangle of the grid must be mapped to an upright rectangle in order for number classification to occur, so we have to use the warpperspective() function to accomplish this. In a use case such as the one you described to me, this may not be necessary, but some form of rotating an object to get the proper perspective is indeed important in object classification.
 
 
 # NUMBER DETECTION (THIS IS THE CRITICAL STEP FOR AR USE CASE)
