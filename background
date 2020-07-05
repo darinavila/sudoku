@@ -1,0 +1,115 @@
+# BACKGROUND
+
+# Computer Vision Overview
+Computer vision is the field concerning the ability of a computer to process photo or video input that it receives from a visual sensor. This is accomplished by converting an image into an array of tuples of three pixels with values between 0 and 255 (representing the RGB color system), and representing a video as a set of images which continually change to reflect the current frame. This array can then be manipulated for a variety of purposes, including motion detection, object classification, filter application, among many others. The use of Python’s opencv library for computer vision which operates on top of Python’s numpy library for linear algebra makes computer vision tasks much simpler than they otherwise would be. 
+
+
+
+
+
+
+# Sudoku Grid Detection
+
+The first step is to find the contour, or region of the frame which contains the sudoku grid. Below is the code I used to draw this contour. (NOTE: While the creator’s github was consulted for ideas and certain opencv methods, all code here is original)
+
+    import cv2, time
+    import numpy as np
+    video = cv2.VideoCapture(0)
+
+    x = 1
+
+    while True:
+        check, frame = video.read()
+        frame = frame
+        frame = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+        frame = cv2.GaussianBlur(frame,(5,5),0)
+        frame = cv2.adaptiveThreshold(frame, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 15, 5)
+        image, contours, hierarchy = cv2.findContours(frame, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+   
+        maxA = -1
+        maxC = None
+        secA = -1
+        secC = None
+   
+        for f in contours:
+            if cv2.contourArea(f) > maxA:
+                maxA = cv2.contourArea(f)
+                maxC = f
+            elif cv2.contourArea(f) > secA:
+                secA = cv2.contourArea(f)
+                secC = f
+
+
+        big = [1]
+        big[0] = secC
+        print(secC)
+
+        check, frame2 = video.read()
+        final = cv2.drawContours(frame2, big, -1, (0,0,255),1)
+        cv2.imshow('final',final)
+        key = cv2.waitKey(1)
+        if key == ord('x'):
+            break
+    video.release()
+    cv2.destroyAllWindows
+
+
+
+![mypic1](images/grid_grab.PNG)
+
+
+
+
+In short, I set up a loop to constantly be grabbing new camera frames, thus creating a real time video. Then, I took each individual frame and converted it to a black and white image to make image processing possible. Then I applied Gaussian blurring in order to remove image noise, and adaptive Gaussian thresholding to mark tangible “edges” in the photo. I then found all of the contours, which are essentially just the boundary of closed regions formed from these edges. Because the entire frame was being counted as one big contour, I wrote code to grab the second biggest contour, and then to draw this back on the original frame.
+
+
+
+After this I grabbed the polygon encompassed by the grid with the lines
+
+    poly = cv2.approxPolyDP(secC, 1, True)
+    cv2.fillConvexPoly(final, poly, (0,255,255), 1)
+    Which yields the image below
+
+
+![mypic2](images/grid_poly.PNG)
+
+After this, the rotated rectangle of the grid must be mapped to an upright rectangle in order for number classification to occur, so we have to use the warpperspective() function to accomplish this. In a different AR use case, this may not be necessary, but some form of rotating an object to get the proper perspective is indeed important in object classification. This was accomplished with the following code, much of which was lifted directly from Songoku:
+
+    if len(poly) > 3:
+                
+        topleft =       min(secC, key=lambda x: x[0,0]+x[0,1])
+        bottomright =   max(secC, key=lambda x: x[0,0]+x[0,1])
+        topright =      max(secC, key=lambda x: x[0,0]-x[0,1])
+        bottomleft =    min(secC, key=lambda x: x[0,0]-x[0,1])
+        corners = (topleft, topright, bottomleft, bottomright)
+
+    rect = cv2.minAreaRect(poly)
+    width = int(rect[1][0])
+    height = int(rect[1][1])
+
+    src_pts = np.float32([corners[0],corners[1],corners[2],corners[3]])
+    dst_pts = np.float32([[0,0],[width,0],[0,height],[width,height]])
+    
+    per = cv2.getPerspectiveTransform(src_pts, dst_pts)
+    warp = cv2.warpPerspective(frame, per, (width, height))
+    warp = cv2.resize(warp, (max(width, height), max(width, height)), interpolation=cv2.INTER_CUBIC)
+    
+The grid is then split up into its 81 individual components by splitting 
+
+
+
+# NUMBER DETECTION (THIS IS THE CRITICAL STEP FOR AR USE CASE)
+
+There are some minutiae in the beginning of this phase of the project as the grid needs to be sliced into its different boxes and the lines between the numbers ignored, but this portion of the code is specific just to sudoku and won’t be necessary for other use cases. I have pasted the code in this section below, and will offer a brief explanation of its parts, but what’s important is what happens after these boxes have been compartmentalized.  Each image of a number is “looked” at by the computer, input into a convolutional neural network, and output as a digit between 0-9. The beauty of this process is that the fact that this is happening in real time is no obstacle, as each individual frame is looked at separately, and its grid located and numbers classified instantaneously.  Each still image will run images through the neural network and receive numbers. The accuracy of this type of numerical classification is over 99%, and this is owed in large part to the power of the convolutional neural network. 
+
+
+
+
+# MODIFICATIONS
+So how can code like this be adapted for a different type of object classification? Most of the body of this code can remain the same. We will continue to need a sequential model with convolutional layers and then a flattening into additional “normal” dense hidden layers, all with the efficient relu activation. Depending on the size of what we’re doing it might be very helpful or even necessary to include pooling layers, and dropping a proportion of the neurons is always important to prevent overfitting. What will change then will of course be the labeled dataset we are using to train the network, and perhaps also the size of the image we enter into the network. The number of output modes which the final softmax function will sort images into is again entirely dependent on the use case, and how many categories of objects the network is meant to classify. The size of the kernels/filters we use for convolution, the number of layers and neurons, the proportion we choose to drop in each layer, when we flatten, our optimizer, and other hyperparameters will be adjusted per the use case and will be optimized via a grid search when the time comes. With a good labeled dataset and the use of a CNN with opencv, real time object classification should be possible.
+
+
+
+
+# SUDOKU SOLVE
+This portion of the project is the least applicable to a different AR, so I have not written any new code here. In a different use case, this step would be replaced with something different, whether it’s printing the name of an object on the screen, showing other related objects, etc. For Sudoku however, the augmented reality environment is completed by running a known recursive algorithm for solving Sudoku, and then printing the correct numbers in the correct locations on the grid.
