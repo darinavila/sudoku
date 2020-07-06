@@ -98,4 +98,4 @@ score = model.evaluate(x_test, y_test, verbose=0)
 print('Test loss:', score[0])
 print('Test accuracy:', score[1])
 
-The above steps calculate and print the error in the model, which reaches above 99% by the 12th epoch in a relatively short amount of time
+The above steps calculate and print the error in the model, which reaches above 99% by the 12th epoch in a relatively short amount of time.
