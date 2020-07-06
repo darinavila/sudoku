@@ -50,7 +50,7 @@ This should open up your browser with a folder directory (for windows this is ty
 The simplest way to proceed in this step is to navigate to wherever you would like this project to reside on your computer within the Jupyter browser directory, and create a folder for this project. Then simply download the files from this repository, and place them in the folder you've created. 
 
 **Run code, put grid in front of camera:**
-The final step is to open up the main.ipynb file and click run. If you have a functioning webcam, a new window should open up displaying your video feed. Print out ne of the sample sudoku grids provided, or one of your own, and hold it up to the camera (relatively upright, with a steady hand) and the solved numbers should be printed out on the grid in the video feed.
+The final step is to open up the main.ipynb file and click run. If you have a functioning webcam, a new window should open up displaying your video feed. Print out one of the sample sudoku grids provided, or one of your own, and hold it up to the camera (relatively upright, with a steady hand) and the solved numbers should be printed out on the grid in the video feed.
 
 
 
@@ -58,9 +58,8 @@ The final step is to open up the main.ipynb file and click run. If you have a fu
 # REFERENCES
 
 https://github.com/guille0/songoku
-This repository was extremely helpful in the pre-processing department. Portions of the code
-lifted from this repo are notated in my code
+This repository was extremely helpful in the pre-processing department. Portions of this code were directly copied, and some were used as inspiration.
 
 https://github.com/anhminhtran235/real_time_sudoku_solver
 This repository was very useful in preprocessing the numbers as well as pasting the solutions back onto the image.
-I used a lot of code directly from this repo, as well as using the neural network and sudoku solver files directly (not my own in any capacity) so all credit goes to this repository's owner for these files and large sections of code which are notated in my code. The files 'digitRecognition.h5' and 'solver.py' are both taken directly from this repository
+I copied a lot of code directly from this repo, used some for for inspiration, as well as using the neural network and sudoku solver files directly (not my own in any capacity) so all credit goes to this repository's owner for these files and large sections of code. The files 'digitRecognition.h5' and 'solver.py' are both taken directly from this repository.
