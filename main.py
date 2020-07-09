@@ -62,11 +62,11 @@ while True:
     big = [1]
     big[0] = secC 
     
-    poly = cv2.approxPolyDP(secC, 1, True)
-    
+      
     
     epsilon = 0.025*cv2.arcLength(secC, True)
-    poly = cv2.approxPolyDP(secC, epsilon, True)
+    if secC is not None:
+      poly = cv2.approxPolyDP(secC, epsilon, True)
    
 
     if len(poly) > 3:
