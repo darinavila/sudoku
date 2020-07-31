@@ -63,3 +63,5 @@ This repository was extremely helpful in the pre-processing department. Portions
 https://github.com/anhminhtran235/real_time_sudoku_solver
 This repository was very useful in preprocessing the numbers as well as pasting the solutions back onto the image.
 I copied a lot of code directly from this repo, used some for for inspiration, as well as using the neural network and sudoku solver files directly (not my own in any capacity) so all credit goes to this repository's owner for these files and large sections of code. The files 'digitRecognition.h5' and 'solver.py' are both taken directly from this repository.
+
+https://github.com/ayushoriginal/HandWritingRecognition-CNN
