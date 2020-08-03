@@ -52,7 +52,50 @@ The simplest way to proceed in this step is to navigate to wherever you would li
 **Run code, put grid in front of camera:**
 The final step is to open up the main.ipynb file and click run. If you have a functioning webcam, a new window should open up displaying your video feed. Print out one of the sample sudoku grids provided, or one of your own, and hold it up to the camera (relatively upright, with a steady hand) and the solved numbers should be printed out on the grid in the video feed.
 
+# BACKGROUND
 
+# Computer Vision Overview
+Computer vision is the field concerning the ability of a computer to process photo or video input that it receives from a visual sensor. This is accomplished by converting an image into an array of tuples of three pixels with values between 0 and 255 (representing the RGB color system), and representing a video as a set of images which continually change to reflect the current frame. This array can then be manipulated for a variety of purposes, including motion detection, object classification, filter application, among many others. The use of Python’s opencv library for computer vision which operates on top of Python’s numpy library for linear algebra makes computer vision tasks much simpler than they otherwise would be. 
+
+
+
+
+
+
+# Sudoku Grid Detection
+
+The first step is to find the contour, or region of the frame which contains the sudoku grid. 
+    
+
+
+![mypic1](images/grid_grab.PNG)
+
+
+
+
+In short, I set up a loop to constantly be grabbing new camera frames, thus creating a real time video. Then, I took each individual frame and converted it to a black and white image to make image processing possible. Then I applied Gaussian blurring in order to remove image noise, and adaptive Gaussian thresholding to mark tangible “edges” in the photo. I then found all of the contours, which are essentially just the boundary of closed regions formed from these edges. Because the entire frame was being counted as one big contour, I wrote code to grab the second biggest contour, and then to draw this back on the original frame.
+
+
+
+After this, the rotated rectangle of the grid must be mapped to an upright rectangle in order for number classification to occur, so we have to use the warpperspective() function to accomplish this. 
+
+    
+
+
+
+
+# NUMBER DETECTION 
+
+The grid is then split up into its 81 individual components by dividing the width and height by 9, accounting for the borders on the sudoku grid, and then "cleaned up" by cropping based on the number's contour. After this, each image of an individual number is resized and prepared to enter the network for recognition. Each image of a number is “looked” at by the computer, input into a convolutional neural network, and output as a digit between 0-9. The beauty of this process is the fact that this is happening in real time is no obstacle, as each individual frame is looked at separately, and its grid located and numbers classified instantaneously.  Each still image will run images through the neural network and receive numbers. The accuracy of this type of numerical classification is over 99%, and this is owed in large part to the power of the convolutional neural network. 
+
+
+# SUDOKU SOLVE
+The grid of numbers which should match the Sudoku board of the user is now solved by importing and running a known recursive algorithm for Sudoku, and then printing the correct numbers in the correct locations on the grid, so we now have a solved, filled out board.
+
+
+
+# LAST STEP
+Finally, the numbers of the solved grid are printed back onto the grid image, and then the reverse of the earlier perspective transformation is applied to paste this back onto the original image. This means that the solution will be printed onto your paper grid on the screen in real time.
 
 
 # REFERENCES
@@ -64,6 +107,3 @@ https://github.com/anhminhtran235/real_time_sudoku_solver
 This repository was very useful in preprocessing the numbers as well as pasting the solutions back onto the image.
 I copied a lot of code directly from this repo, used some for for inspiration, as well as using the neural network and sudoku solver files directly (not my own in any capacity) so all credit goes to this repository's owner for these files and large sections of code. The files 'digitRecognition.h5' and 'solver.py' are both taken directly from this repository.
 
-https://github.com/ayushoriginal/HandWritingRecognition-CNN
-
-https://github.com/prishitakadam/Real-Time-Sudoku-Solver/blob/master/Real-Time-Sudoku-Solver.ipynb
