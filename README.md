@@ -103,6 +103,15 @@ The grid of numbers which should match the Sudoku board of the user is now solve
 Finally, the numbers of the solved grid are printed back onto the grid image, and then the reverse of the earlier perspective transformation is applied to paste this back onto the original image. This means that the solution will be printed onto your paper grid on the screen in real time.
 
 
+# VERSIONS
+Anaconda: 4.8.3
+Python: 3.8.3
+OpenCV: 4.3.0
+Keras: 2.4.3
+
+
+
+
 # REFERENCES
 
 https://github.com/guille0/songoku
